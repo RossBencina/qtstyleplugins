@@ -83,8 +83,10 @@ static const int blueFrameWidth =  2;  // with of line edit focus frame
 #include <qprocess.h>
 #include <qvarlengtharray.h>
 #include <limits.h>
+#if !(defined(Q_OS_WIN) || defined(Q_OS_MACOS))
 #include <qpa/qplatformtheme.h>
 #include <private/qguiapplication_p.h>
+#endif
 #include <qstylefactory.h>
 
 #include "qstylehelper_p.h"
@@ -5291,11 +5293,17 @@ int QPlastiqueStyle::styleHint(StyleHint hint, const QStyleOption *option, const
     case SH_Menu_SubMenuPopupDelay:
         ret = 96; // from Plastik
         break;
+#if !(defined(Q_OS_WIN) || defined(Q_OS_MACOS))
     case SH_DialogButtonBox_ButtonsHaveIcons:
+        // NOTE: In Qt4, if Q_WS_X11 was defined ret was set to true, otherwise
+        // the superclass QWindowsStyle::styleHint() was invoked.
+        // Here use the QProxyStyle::styleHint on Q_OS_WIN and Q_OS_MACOS,
+        // otherwise use the QPA platform theme's theme hint:
         if (const QPlatformTheme *theme = QGuiApplicationPrivate::platformTheme())
             ret = theme->themeHint(QPlatformTheme::DialogButtonBoxButtonsHaveIcons).toBool();
         else
             ret = true;
+#endif
         break;
 #ifndef Q_OS_WIN
     case SH_Menu_AllowActiveAndDisabled:
